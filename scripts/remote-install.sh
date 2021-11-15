@@ -43,7 +43,7 @@ then
 fi
 
 # Read the options
-USE_VPN=0
+USE_VPN=1
 USE_IOU=0
 I386_REPO=0
 DISABLE_KVM=0
@@ -417,3 +417,6 @@ service gns3 start
 log "Download http://$MY_IP_ADDR:8003/$UUID/$HOSTNAME.ovpn to setup your OpenVPN client after rebooting the server"
 
 fi
+
+# ToDo
+# checkout repo with images
