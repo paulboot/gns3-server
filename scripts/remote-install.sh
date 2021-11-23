@@ -406,8 +406,16 @@ EOFNGINX
 service nginx stop
 service nginx start
 
-log "Restart OpenVPN and GNS3"
+log "Install tunctl and create tap device"
+apt-get install -y     \
+  uml-utilities
+tunctl -t tap0
 
+# ToDo
+# checkout repo with images
+# install GNS3 pip packages
+
+log "Restart OpenVPN and GNS3"
 set +e
 service openvpn stop
 service openvpn start
@@ -418,5 +426,3 @@ log "Download http://$MY_IP_ADDR:8003/$UUID/$HOSTNAME.ovpn to setup your OpenVPN
 
 fi
 
-# ToDo
-# checkout repo with images
