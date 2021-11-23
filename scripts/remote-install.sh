@@ -300,9 +300,9 @@ if [ $USE_VPN == 1 ]
 then
 log "Setup VPN"
 
-log "Change GNS3 to listen on VPN interface"
-
-sed -i 's/host = 0.0.0.0/host = 172.16.253.1/' /etc/gns3/gns3_server.conf
+# Uncomment if only listening on VPN interface
+# log "Change GNS3 to listen on VPN interface"
+# sed -i 's/host = 0.0.0.0/host = 172.16.253.1/' /etc/gns3/gns3_server.conf
 
 log "Install packages for OpenVPN"
 
