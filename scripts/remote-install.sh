@@ -417,9 +417,13 @@ log "Download http://$MY_IP_ADDR:8003/$UUID/$HOSTNAME.ovpn to setup your OpenVPN
 
 fi
 
-log "Create tap device, not persistent"
-ip tuntap add tap0 mode tap
-# make persistant
+log "Create a persistent tap device"
+cat <<EOFTAP > /etc/systemd/network/90-tap0.netdev
+[NetDev]
+Name=tap0
+Kind=tap
+EOFTAP
+
 # add IP address
 # ip link set dev tap0 up
 
