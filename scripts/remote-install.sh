@@ -424,9 +424,14 @@ Name=tap0
 Kind=tap
 EOFTAP
 
-# add IP address
+# add tap0 IP address script (can not be done by netplan)
 # ip link set dev tap0 up
 
 # ToDo
 # checkout repo with images
 # install GNS3 pip packages
+log "Install pip gns3fy"
+apt install -y pip
+pip install gns3fy
+
+# reboot
