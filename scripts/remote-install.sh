@@ -424,14 +424,51 @@ Name=tap0
 Kind=tap
 EOFTAP
 
-# add tap0 IP address script (can not be done by netplan)
-# ip link set dev tap0 up
+log "Create a script with tap device and an IPv4 address"
+cat <<'EOF' > /usr/local/sbin/tap.sh
+#!/bin/bash
+
+nodeName=$(uname -n)
+
+labName=$(echo $nodeName | cut -d'-' -f2)
+# labNr=$(echo $labName | awk '{ print substr ($0, 3 ) }')
+labNr=$(echo $labName | sed 's/lab//g')
+ipSubnetFirst=$(($labNr*8))
+ipSubnetLast=$((($labNr+1)*8-1))
+
+intNr=0
+ip tuntap add name tap$intNr mode tap
+ip -4 addr add 10.2.$ipSubnetLast.1/24 dev tap$intNr
+ip link set up dev tap$intNr
+EOF
+
+chmod +x /usr/local/sbin/tap.sh
+
+log "Create a tap.service definition, enable and start the service"
+cat <<EOF > /etc/systemd/system/tap.service
+[Unit]
+Description=TAP Interfaces
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/sbin/tap.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable tap.service
+systemctl start tap.service
 
 # ToDo
 # checkout repo with images
-# install GNS3 pip packages
+
 log "Install pip gns3fy"
-apt install -y pip
+apt install -y   \
+  python3        \
+  pip
 pip install gns3fy
 
 # reboot
