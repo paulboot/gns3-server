@@ -471,4 +471,11 @@ apt install -y   \
   pip
 pip install gns3fy
 
+log "Modify ssh config for Cisco devices"
+cat <<EOF > /etc/ssh/ssh_config.d/gns3.conf
+Host *
+    ForwardAgent yes
+    KexAlgorithms +diffie-hellman-group-exchange-sha1
+EOF
+
 # reboot
