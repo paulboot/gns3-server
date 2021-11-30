@@ -429,7 +429,6 @@ cat <<'EOF' > /usr/local/sbin/tap.sh
 #!/bin/bash
 
 nodeName=$(uname -n)
-
 labName=$(echo $nodeName | cut -d'-' -f2)
 # labNr=$(echo $labName | awk '{ print substr ($0, 3 ) }')
 labNr=$(echo $labName | sed 's/lab//g')
@@ -468,7 +467,8 @@ systemctl start tap.service
 log "Install pip gns3fy"
 apt install -y   \
   python3        \
-  pip
+  pip            \
+  jq
 pip install gns3fy
 
 log "Modify ssh config for Cisco devices"
@@ -477,5 +477,17 @@ Host *
     ForwardAgent yes
     KexAlgorithms +diffie-hellman-group-exchange-sha1
 EOF
+
+log "Checkout private repo from GITHUB using secret stored in Azure"
+cd /tmp
+BEARER=$(curl -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | jq -r '.access_token')
+KEY1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $BEARER" | jq -r '.value')
+git clone https://$KEY1:x-oauth-basic@github.com/paulboot/qemu-images.git
+# loop trough images 
+# upload using curl -X POST bla....
+# remove images
+# loop through templates
+# upload templates
+# remove templates
 
 # reboot
