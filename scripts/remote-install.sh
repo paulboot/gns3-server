@@ -494,7 +494,7 @@ do
     log "Uploading file $f to GNS3..."
     if [ -f "$f" ]
     then
-        curl -X POST "http://localhost:3080/v2/compute/qemu/images/$f" --data-binary "@$f"
+        curl -s -X POST "http://localhost:3080/v2/compute/qemu/images/$f" --data-binary "@$f"
     fi
 done
 # remove images
