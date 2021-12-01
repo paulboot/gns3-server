@@ -466,6 +466,9 @@ systemctl start tap.service
 
 log "Install pip gns3fy"
 apt install -y   \
+  curl           \
+  git            \
+  git-lfs        \
   python3        \
   pip            \
   jq
@@ -479,13 +482,23 @@ Host *
 EOF
 
 log "Checkout private repo from GITHUB using secret stored in Azure"
-cd /tmp
 BEARER=$(curl -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | jq -r '.access_token')
 KEY1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $BEARER" | jq -r '.value')
+cd /tmp
 git clone https://$KEY1:x-oauth-basic@github.com/paulboot/qemu-images.git
-# loop trough images 
-# upload using curl -X POST bla....
+cd qemu-images
+git lfs checkout
+
+for f in *.img *.qcow2
+do
+    log "Uploading file $f to GNS3..."
+    if [ -f "$f" ]
+    then
+        curl -X POST "http://localhost:3080/v2/compute/qemu/images/$f" --data-binary "@$f"
+    fi
+done
 # remove images
+
 # loop through templates
 # upload templates
 # remove templates
