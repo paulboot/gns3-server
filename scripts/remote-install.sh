@@ -469,9 +469,10 @@ apt install -y   \
   curl           \
   git            \
   git-lfs        \
+  jq             \
   python3        \
   pip            \
-  jq
+  uuid-runtime
 pip install gns3fy
 
 log "Modify ssh config for Cisco devices"
@@ -482,25 +483,28 @@ Host *
 EOF
 
 log "Checkout private repo from GITHUB using secret stored in Azure"
-BEARER=$(curl -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | jq -r '.access_token')
-KEY1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $BEARER" | jq -r '.value')
+Repo="qemu-images"
+Bearer=$(curl -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | jq -r '.access_token')
+Key1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $Bearer" | jq -r '.value')
 cd /tmp
-git clone https://$KEY1:x-oauth-basic@github.com/paulboot/qemu-images.git
-cd qemu-images
+git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
+cd $Repo
 git lfs checkout
 
 for f in *.img *.qcow2
 do
-    log "Uploading file $f to GNS3..."
+    log "Uploading QEMU image files $f to GNS3..."
     if [ -f "$f" ]
     then
         curl -s -X POST "http://localhost:3080/v2/compute/qemu/images/$f" --data-binary "@$f"
     fi
 done
-# remove images
+# remove image files rm -f *.img *.qcow2
 
 # loop through templates
+# generate UUID with uuidgen
 # upload templates
-# remove templates
+# remove template files
+# remove directory rm -f $Repo
 
 # reboot
