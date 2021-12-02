@@ -472,7 +472,8 @@ apt install -y   \
   jq             \
   python3        \
   pip            \
-  uuid-runtime
+  uuid-runtime   \
+  uuid
 pip install gns3fy
 
 log "Modify ssh config for Cisco devices"
