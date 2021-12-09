@@ -510,7 +510,7 @@ do
         uuid=$(uuid)
         tmp=$(mktemp)
         jq --arg uuid "$uuid" '."template_id" = $uuid' $t > "$tmp" && mv "$tmp" "$t"
-        curl -X POST "http://localhost:3080/v2/templates" --data "@$t"
+        curl -s -X POST "http://localhost:3080/v2/templates" --data "@$t"
     fi
 done
 # remove template files
