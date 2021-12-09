@@ -494,7 +494,7 @@ git lfs checkout
 
 for f in *.img *.qcow2
 do
-    log "Uploading QEMU image files $f to GNS3..."
+    log "Info: uploading QEMU image files $f to GNS3..."
     if [ -f "$f" ]
     then
         curl -s -X POST "http://localhost:3080/v2/compute/qemu/images/$f" --data-binary "@$f"
@@ -502,9 +502,17 @@ do
 done
 # remove image files rm -f *.img *.qcow2
 
-# loop through templates
-# generate UUID with uuidgen
-# upload templates
+for t in *.gns3am
+do
+    log "Info: uploading template (part of appliance) $t to GNS3..."
+    if [ -f "$t" ]
+    then
+        uuid=$(uuid)
+        tmp=$(mktemp)
+        jq --arg uuid "$uuid" '."template_id" = $uuid' $t > "$tmp" && mv "$tmp" "$t"
+        curl -X POST "http://localhost:3080/v2/templates" --data "@$t"
+    fi
+done
 # remove template files
 # remove directory rm -f $Repo
 
