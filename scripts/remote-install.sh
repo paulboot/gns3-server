@@ -492,7 +492,7 @@ git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
 cd $Repo
 git lfs checkout
 
-for f in *.img *.qcow2
+for f in *.img *.qcow2 *.fd
 do
     log "Info: uploading QEMU image files $f to GNS3..."
     if [ -f "$f" ]
