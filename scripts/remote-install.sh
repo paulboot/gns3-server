@@ -492,7 +492,7 @@ git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
 cd $Repo
 git lfs checkout
 
-for f in *.img *.qcow2 *.fd
+for f in *.img *.qcow2 *.fd *.iso
 do
     log "Info: uploading QEMU image files $f to GNS3..."
     if [ -f "$f" ]
@@ -500,7 +500,7 @@ do
         curl -s -X POST "http://localhost:3080/v2/compute/qemu/images/$f" --data-binary "@$f"
     fi
 done
-# remove image files rm -f *.img *.qcow2
+# remove image files rm -f *.img *.qcow2 *.iso
 
 for t in *.gns3am
 do
