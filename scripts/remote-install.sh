@@ -254,20 +254,21 @@ EOFI
 chown root:root /etc/init/gns3.conf
 chmod 644 /etc/init/gns3.conf
 
-
-# ToDo UUID and MAC address now fixed OK???
-log "Add DHCP options to libvirt networking"
+log "Creating new default libvirt networking config"
+uuid=$('import virtinst.util ; print virtinst.util.uuidToString(virtinst.util.randomUUID())' | python)
+mac=$('import virtinst.util ; print virtinst.util.randomMAC()' | python)
 mkdir -p /usr/share/libvirt/networks
+
 cat <<EOF > /usr/share/libvirt/networks/default.xml
   <dnsmasq:options>
      <dnsmasq:option value='# Added in /usr/share/libvirt/networks/default.xml'/>
      <dnsmasq:option value='dhcp-option=150,192.168.122.1'/>
   </dnsmasq:options>
   <name>default</name>
-  <uuid>3d89c1b4-43dc-4abd-ab71-9aa31009912e</uuid>
+  <uuid>$uuid</uuid>
   <forward mode='nat'/>
   <bridge name='virbr0' stp='on' delay='0'/>
-  <mac address='52:54:00:40:4c:e8'/>
+  <mac address='$mac'/>
   <ip address='192.168.122.1' netmask='255.255.255.0'>
     <dhcp>
       <range start='192.168.122.2' end='192.168.122.254'/>
@@ -276,7 +277,7 @@ cat <<EOF > /usr/share/libvirt/networks/default.xml
 </network>
 EOF
 
-log "Libvirt removing default network and adding new default"
+log "Libvirt removing default network and adding dhcp options in default"
 virsh net-destroy default
 virsh net-define /usr/share/libvirt/networks/default.xml
 virsh net-autostart default
