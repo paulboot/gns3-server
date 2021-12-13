@@ -255,11 +255,13 @@ chown root:root /etc/init/gns3.conf
 chmod 644 /etc/init/gns3.conf
 
 log "Creating new default libvirt networking config"
-uuid=$('import virtinst.util ; print virtinst.util.uuidToString(virtinst.util.randomUUID())' | python)
-mac=$('import virtinst.util ; print virtinst.util.randomMAC()' | python)
+uuid=$(uuid)
+# ToDo generate unique MAC
+mac="52:54:00:9b:61:79"
 mkdir -p /usr/share/libvirt/networks
 
-cat <<EOF > /usr/share/libvirt/networks/default.xml
+cat <<'EOF' > /usr/share/libvirt/networks/default.xml
+<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
   <dnsmasq:options>
      <dnsmasq:option value='# Added in /usr/share/libvirt/networks/default.xml'/>
      <dnsmasq:option value='dhcp-option=150,192.168.122.1'/>
