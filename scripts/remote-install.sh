@@ -260,7 +260,7 @@ uuid=$(uuid)
 mac="52:54:00:9b:61:79"
 mkdir -p /usr/share/libvirt/networks
 
-cat <<'EOF' > /usr/share/libvirt/networks/default.xml
+cat <<EOF > /usr/share/libvirt/networks/default.xml
 <network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
   <dnsmasq:options>
      <dnsmasq:option value='# Added in /usr/share/libvirt/networks/default.xml'/>
@@ -281,6 +281,7 @@ EOF
 
 log "Libvirt removing default network and adding dhcp options in default"
 virsh net-destroy default
+virsh net-undefine default
 virsh net-define /usr/share/libvirt/networks/default.xml
 virsh net-autostart default
 virsh net-start default
