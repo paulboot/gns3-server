@@ -153,6 +153,38 @@ apt-get update
 log "Upgrade packages"
 apt-get upgrade --yes --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
+log "Creating new default libvirt networking config"
+uuid=$(uuid)
+# ToDo generate unique MAC
+mac="52:54:00:9b:61:79"
+mkdir -p /usr/share/libvirt/networks
+
+cat <<EOF > /usr/share/libvirt/networks/default.xml
+<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
+  <dnsmasq:options>
+     <dnsmasq:option value='# Added in /usr/share/libvirt/networks/default.xml'/>
+     <dnsmasq:option value='dhcp-option=150,192.168.122.1'/>
+  </dnsmasq:options>
+  <name>default</name>
+  <uuid>$uuid</uuid>
+  <forward mode='nat'/>
+  <bridge name='virbr0' stp='on' delay='0'/>
+  <mac address='$mac'/>
+  <ip address='192.168.122.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.122.2' end='192.168.122.254'/>
+    </dhcp>
+  </ip>
+</network>
+EOF
+
+log "Libvirt removing default network and adding dhcp options in default"
+virsh net-destroy default
+virsh net-undefine default
+virsh net-define /usr/share/libvirt/networks/default.xml
+virsh net-autostart default
+virsh net-start default
+
 log "Install GNS3 packages"
 apt-get install -y gns3-server
 
@@ -161,7 +193,6 @@ if [ ! -d "/opt/gns3/" ]
 then
   useradd -d /opt/gns3/ -m gns3
 fi
-
 
 log "Add GNS3 to the ubridge group"
 usermod -aG ubridge gns3
@@ -195,7 +226,7 @@ then
     echo "127.0.0.254 xml.cisco.com" | tee --append /etc/hosts
 fi
 
-log "Add gns3 to the kvm group"
+log "Add GNS3 to the kvm group"
 usermod -aG kvm gns3
 
 log "Setup GNS3 server"
@@ -254,38 +285,6 @@ EOFI
 chown root:root /etc/init/gns3.conf
 chmod 644 /etc/init/gns3.conf
 
-log "Creating new default libvirt networking config"
-uuid=$(uuid)
-# ToDo generate unique MAC
-mac="52:54:00:9b:61:79"
-mkdir -p /usr/share/libvirt/networks
-
-cat <<EOF > /usr/share/libvirt/networks/default.xml
-<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
-  <dnsmasq:options>
-     <dnsmasq:option value='# Added in /usr/share/libvirt/networks/default.xml'/>
-     <dnsmasq:option value='dhcp-option=150,192.168.122.1'/>
-  </dnsmasq:options>
-  <name>default</name>
-  <uuid>$uuid</uuid>
-  <forward mode='nat'/>
-  <bridge name='virbr0' stp='on' delay='0'/>
-  <mac address='$mac'/>
-  <ip address='192.168.122.1' netmask='255.255.255.0'>
-    <dhcp>
-      <range start='192.168.122.2' end='192.168.122.254'/>
-    </dhcp>
-  </ip>
-</network>
-EOF
-
-log "Libvirt removing default network and adding dhcp options in default"
-virsh net-destroy default
-virsh net-undefine default
-virsh net-define /usr/share/libvirt/networks/default.xml
-virsh net-autostart default
-virsh net-start default
-
 log "Start GNS3 service"
 set +e
 service gns3 stop
@@ -326,6 +325,7 @@ EOFI
 fi
 
 log "GNS3 installed with success"
+
 
 if [ $USE_VPN == 1 ]
 then
