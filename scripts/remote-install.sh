@@ -153,7 +153,7 @@ apt-get update
 log "Upgrade packages"
 apt-get upgrade --yes --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-log "Creating new default libvirt networking config"
+log "Disable DNSMasq DHCP by creating new default libvirt networking config"
 uuid=$(uuid)
 # ToDo generate unique MAC
 mac="52:54:00:9b:61:79"
@@ -161,29 +161,26 @@ mkdir -p /usr/share/libvirt/networks
 
 cat <<EOF > /usr/share/libvirt/networks/default.xml
 <network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
-  <dnsmasq:options>
-     <dnsmasq:option value='# Added in /usr/share/libvirt/networks/default.xml'/>
-     <dnsmasq:option value='dhcp-option=150,192.168.122.1'/>
-  </dnsmasq:options>
   <name>default</name>
   <uuid>$uuid</uuid>
   <forward mode='nat'/>
   <bridge name='virbr0' stp='on' delay='0'/>
   <mac address='$mac'/>
   <ip address='192.168.122.1' netmask='255.255.255.0'>
-    <dhcp>
-      <range start='192.168.122.2' end='192.168.122.254'/>
-    </dhcp>
   </ip>
 </network>
 EOF
 
-log "Libvirt removing default network and adding dhcp options in default"
+log "Libvirt removing default network and activate new default"
 virsh net-destroy default
 virsh net-undefine default
 virsh net-define /usr/share/libvirt/networks/default.xml
 virsh net-autostart default
 virsh net-start default
+
+# ToDo Install and anable ISC DHCP with better support for option 82 handeling
+# ToDo Install smart TFTPserver 
+# Download example configs
 
 log "Install GNS3 packages"
 apt-get install -y gns3-server
