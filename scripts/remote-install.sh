@@ -485,6 +485,37 @@ cat <<EOF > /usr/share/libvirt/networks/default.xml
   <forward mode='nat'/>
   <bridge name='virbr0' stp='on' delay='0'/>
   <mac address='$mac'/>
+  <domain name='lab.local' localOnly='no'/>
+  <dns enabled="yes" forwardPlainNames="no">
+    <host ip='192.168.122.2'>
+        <hostname>r2</hostname>
+        <hostname>r2alias</hostname>
+    </host>
+    <host ip='192.168.122.3'>
+        <hostname>r3</hostname>
+    </host>
+    <host ip='192.168.122.4'>
+        <hostname>r4</hostname>
+    </host>
+    <host ip='192.168.122.5'>
+        <hostname>r5</hostname>
+    </host>
+    <host ip='192.168.122.6'>
+        <hostname>r6</hostname>
+    </host>
+    <host ip='192.168.122.7'>
+        <hostname>r7</hostname>
+    </host>
+    <host ip='192.168.122.8'>
+        <hostname>r8</hostname>
+    </host>
+    <host ip='192.168.122.9'>
+        <hostname>r9</hostname>
+    </host>
+    <host ip='192.168.122.10'>
+        <hostname>r10</hostname>
+    </host>
+  </dns>
   <ip address='192.168.122.1' netmask='255.255.255.0'>
   </ip>
 </network>
@@ -527,6 +558,22 @@ DHCPD
 
 log "Restarting ISC DHCP server"
 systemctl restart isc-dhcp-server.service
+
+log "Installing smart TFTP server fbtftp"
+Repo="fbtftp"
+Key1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $Bearer" | jq -r '.value')
+mkdir -p /opt/ztp/tftproot
+cd /opt/ztp
+apt-get install -y python3-venv
+python3 -m venv venv
+# git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
+cd $Repo
+source venv/bin/activate
+pip install -r requirements.txt
+python
+import fbtftp
+exit()
+
 
 # ToDo Install smart TFTPserver
 # Download example configs
