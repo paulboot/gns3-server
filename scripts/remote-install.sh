@@ -574,9 +574,20 @@ python
 import fbtftp
 exit()
 
-
-# ToDo Install smart TFTPserver
-# Download example configs
+# TODO Enhance and Parse a YAML drawthe.net as source of truth
+# Install FTP server, dynamically create r1-conf start file using requested filename and template
+# Create management only templates
+# Using curl/python create empty project in GNS3
+#   Create NAT cloud
+#   Create L2 switch
+#   Create 1 router
+#   Connect 1 router to switch
+#   Connect switch to cloud
+#   Start 1 router
+#   Import generic management only config 1 router
+#   Import complex lab config in router and restart router from git
+#   Before shutdown export complex lab configs to git
+#   NOTE: I think no import or export function for GNS3 project is needed right?
 
 log "Modify ssh config to access Cisco devices over ssh"
 cat <<EOF > /etc/ssh/ssh_config.d/gns3.conf
@@ -615,7 +626,7 @@ do
         curl -s -X POST "http://localhost:3080/v2/templates" --data "@$t"
     fi
 done
-# remove template files
-# remove directory rm -f $Repo
+# TODO remove template files
+# TODO remove directory rm -f $Repo
 
-# reboot
+# TODO reboot
