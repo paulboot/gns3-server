@@ -111,8 +111,8 @@ EOFLIST
         cat <<EOFLIST > /etc/apt/sources.list.d/gns3.list
 deb http://ppa.launchpad.net/gns3/ppa/ubuntu $UBUNTU_CODENAME main
 deb-src http://ppa.launchpad.net/gns3/ppa/ubuntu $UBUNTU_CODENAME main
-deb http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main 
-deb-src http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main 
+deb http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main
+deb-src http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main
 EOFLIST
     fi
 else
@@ -134,14 +134,14 @@ if [ $I386_REPO == 1 ]
 then
     cat <<EOFLIST2  >> /etc/apt/sources.list
 ###### Ubuntu Main Repos
-deb http://archive.ubuntu.com/ubuntu/ $UBUNTU_CODENAME main universe multiverse 
-deb-src http://archive.ubuntu.com/ubuntu/ $UBUNTU_CODENAME main universe multiverse 
+deb http://archive.ubuntu.com/ubuntu/ $UBUNTU_CODENAME main universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ $UBUNTU_CODENAME main universe multiverse
 
 ###### Ubuntu Update Repos
-deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-security main universe multiverse 
-deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-updates main universe multiverse 
-deb-src http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-security main universe multiverse 
-deb-src http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-updates main universe multiverse 
+deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-security main universe multiverse
+deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-updates main universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-security main universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-updates main universe multiverse
 EOFLIST2
 fi
 
@@ -153,42 +153,13 @@ apt-get update
 log "Upgrade packages"
 apt-get upgrade --yes --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-log "Disable DNSMasq DHCP by creating new default libvirt networking config"
-uuid=$(uuid)
-# ToDo generate unique MAC
-mac="52:54:00:9b:61:79"
-mkdir -p /usr/share/libvirt/networks
-
-cat <<EOF > /usr/share/libvirt/networks/default.xml
-<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
-  <name>default</name>
-  <uuid>$uuid</uuid>
-  <forward mode='nat'/>
-  <bridge name='virbr0' stp='on' delay='0'/>
-  <mac address='$mac'/>
-  <ip address='192.168.122.1' netmask='255.255.255.0'>
-  </ip>
-</network>
-EOF
-
-log "Libvirt removing default network and activate new default"
-virsh net-destroy default
-virsh net-undefine default
-virsh net-define /usr/share/libvirt/networks/default.xml
-virsh net-autostart default
-virsh net-start default
-
-# ToDo Install and anable ISC DHCP with better support for option 82 handeling
-# ToDo Install smart TFTPserver 
-# Download example configs
-
 log "Install GNS3 packages"
 apt-get install -y gns3-server
 
 log "Create user GNS3 with /opt/gns3 as home directory"
 if [ ! -d "/opt/gns3/" ]
 then
-  useradd -d /opt/gns3/ -m gns3
+    useradd -d /opt/gns3/ -m gns3
 fi
 
 log "Add GNS3 to the ubridge group"
@@ -197,7 +168,7 @@ usermod -aG ubridge gns3
 log "Install docker"
 if [ ! -f "/usr/bin/docker" ]
 then
-  curl -sSL https://get.docker.com | bash
+    curl -sSL https://get.docker.com | bash
 fi
 
 log "Add GNS3 to the docker group"
@@ -232,7 +203,7 @@ mkdir -p /etc/gns3
 cat <<EOFC > /etc/gns3/gns3_server.conf
 [Server]
 host = 0.0.0.0
-port = 3080 
+port = 3080
 images_path = /opt/gns3/images
 projects_path = /opt/gns3/projects
 appliances_path = /opt/gns3/appliances
@@ -255,7 +226,7 @@ chmod -R 700 /etc/gns3
 
 if [ "$UBUNTU_CODENAME" == "trusty" ]
 then
-cat <<EOFI > /etc/init/gns3.conf
+    cat <<EOFI > /etc/init/gns3.conf
 description "GNS3 server"
 author      "GNS3 Team"
 
@@ -279,14 +250,14 @@ pre-stop script
 end script
 EOFI
 
-chown root:root /etc/init/gns3.conf
-chmod 644 /etc/init/gns3.conf
+    chown root:root /etc/init/gns3.conf
+    chmod 644 /etc/init/gns3.conf
 
-log "Start GNS3 service"
-set +e
-service gns3 stop
-set -e
-service gns3 start
+    log "Start GNS3 service"
+    set +e
+    service gns3 stop
+    set -e
+    service gns3 start
 
 else
     # Install systemd service
@@ -326,29 +297,29 @@ log "GNS3 installed with success"
 
 if [ $USE_VPN == 1 ]
 then
-log "Setup VPN"
+    log "Setup VPN"
 
-# Uncomment if only listening on VPN interface
-# log "Change GNS3 to listen on VPN interface"
-# sed -i 's/host = 0.0.0.0/host = 172.16.253.1/' /etc/gns3/gns3_server.conf
+    # Uncomment if only listening on VPN interface
+    # log "Change GNS3 to listen on VPN interface"
+    # sed -i 's/host = 0.0.0.0/host = 172.16.253.1/' /etc/gns3/gns3_server.conf
 
-log "Install packages for OpenVPN"
+    log "Install packages for OpenVPN"
 
-apt-get install -y     \
-  openvpn              \
-  uuid                 \
-  dnsutils             \
-  nginx-light
+    apt-get install -y     \
+      openvpn              \
+      uuid                 \
+      dnsutils             \
+      nginx-light
 
-MY_IP_ADDR=$(dig @ns1.google.com -t txt o-o.myaddr.l.google.com +short -4 | sed 's/"//g')
+    MY_IP_ADDR=$(dig @ns1.google.com -t txt o-o.myaddr.l.google.com +short -4 | sed 's/"//g')
 
-log "IP detected: $MY_IP_ADDR"
+    log "IP detected: $MY_IP_ADDR"
 
-UUID=$(uuid)
+    UUID=$(uuid)
 
-log "Update motd"
+    log "Update motd"
 
-cat <<EOFMOTD > /etc/update-motd.d/70-openvpn
+    cat <<EOFMOTD > /etc/update-motd.d/70-openvpn
 #!/bin/sh
 echo ""
 echo "_______________________________________________________________________________________________"
@@ -360,23 +331,22 @@ echo ""
 echo "apt-get remove nginx-light to disable the HTTP server."
 echo "And remove this file with rm /etc/update-motd.d/70-openvpn"
 EOFMOTD
-chmod 755 /etc/update-motd.d/70-openvpn
+    chmod 755 /etc/update-motd.d/70-openvpn
 
-mkdir -p /etc/openvpn/
+    mkdir -p /etc/openvpn/
 
-[ -d /dev/net ] || mkdir -p /dev/net
-[ -c /dev/net/tun ] || mknod /dev/net/tun c 10 200
+    [ -d /dev/net ] || mkdir -p /dev/net
+    [ -c /dev/net/tun ] || mknod /dev/net/tun c 10 200
 
-log "Create keys"
+    log "Create keys"
+    [ -f /etc/openvpn/dh.pem ] || openssl dhparam -out /etc/openvpn/dh.pem 2048
+    [ -f /etc/openvpn/key.pem ] || openssl genrsa -out /etc/openvpn/key.pem 2048
+    chmod 600 /etc/openvpn/key.pem
+    [ -f /etc/openvpn/csr.pem ] || openssl req -new -key /etc/openvpn/key.pem -out /etc/openvpn/csr.pem -subj /CN=OpenVPN/
+    [ -f /etc/openvpn/cert.pem ] || openssl x509 -req -in /etc/openvpn/csr.pem -out /etc/openvpn/cert.pem -signkey /etc/openvpn/key.pem -days 24855
 
-[ -f /etc/openvpn/dh.pem ] || openssl dhparam -out /etc/openvpn/dh.pem 2048
-[ -f /etc/openvpn/key.pem ] || openssl genrsa -out /etc/openvpn/key.pem 2048
-chmod 600 /etc/openvpn/key.pem
-[ -f /etc/openvpn/csr.pem ] || openssl req -new -key /etc/openvpn/key.pem -out /etc/openvpn/csr.pem -subj /CN=OpenVPN/
-[ -f /etc/openvpn/cert.pem ] || openssl x509 -req -in /etc/openvpn/csr.pem -out /etc/openvpn/cert.pem -signkey /etc/openvpn/key.pem -days 24855
-
-log "Create client configuration"
-cat <<EOFCLIENT > /root/client.ovpn
+    log "Create client configuration"
+    cat <<EOFCLIENT > /root/client.ovpn
 client
 nobind
 comp-lzo
@@ -398,7 +368,7 @@ remote $MY_IP_ADDR 1194 udp
 </connection>
 EOFCLIENT
 
-cat <<EOFUDP > /etc/openvpn/udp1194.conf
+    cat <<EOFUDP > /etc/openvpn/udp1194.conf
 server 172.16.253.0 255.255.255.0
 verb 3
 duplicate-cn
@@ -417,33 +387,46 @@ status openvpn-status-1194.log
 log-append /var/log/openvpn-udp1194.log
 EOFUDP
 
-log "Setup HTTP server for serving client certificate"
-mkdir -p /usr/share/nginx/openvpn/$UUID
-cp /root/client.ovpn /usr/share/nginx/openvpn/$UUID/$HOSTNAME.ovpn
-touch /usr/share/nginx/openvpn/$UUID/index.html
-touch /usr/share/nginx/openvpn/index.html
+    log "Setup HTTP server for serving client certificate"
+    mkdir -p /usr/share/nginx/openvpn/$UUID
+    cp /root/client.ovpn /usr/share/nginx/openvpn/$UUID/$HOSTNAME.ovpn
+    touch /usr/share/nginx/openvpn/$UUID/index.html
+    touch /usr/share/nginx/openvpn/index.html
 
-cat <<EOFNGINX > /etc/nginx/sites-available/openvpn
+    cat <<EOFNGINX > /etc/nginx/sites-available/openvpn
 server {
     listen 8003;
     root /usr/share/nginx/openvpn;
 }
 EOFNGINX
 
-[ -f /etc/nginx/sites-enabled/openvpn ] || ln -s /etc/nginx/sites-available/openvpn /etc/nginx/sites-enabled/
-service nginx stop
-service nginx start
+    [ -f /etc/nginx/sites-enabled/openvpn ] || ln -s /etc/nginx/sites-available/openvpn /etc/nginx/sites-enabled/
+    service nginx stop
+    service nginx start
 
-log "Restart OpenVPN and GNS3"
-set +e
-service openvpn stop
-service openvpn start
-service gns3 stop
-service gns3 start
+    log "Restart OpenVPN and GNS3"
+    set +e
+    service openvpn stop
+    service openvpn start
+    service gns3 stop
+    service gns3 start
 
-log "Download http://$MY_IP_ADDR:8003/$UUID/$HOSTNAME.ovpn to setup your OpenVPN client after rebooting the server"
+    log "Download http://$MY_IP_ADDR:8003/$UUID/$HOSTNAME.ovpn to setup your OpenVPN client after rebooting the server"
 
 fi
+
+# Extentions by PBO
+log "Install additiona tools like pip gns3fy"
+apt install -y   \
+  curl           \
+  git            \
+  git-lfs        \
+  jq             \
+  python3        \
+  pip            \
+  uuid-runtime   \
+  uuid
+pip install gns3fy
 
 log "Create a persistent tap device"
 cat <<EOFTAP > /etc/systemd/network/90-tap0.netdev
@@ -489,22 +472,66 @@ EOF
 systemctl enable tap.service
 systemctl start tap.service
 
-# ToDo
-# checkout repo with images
+log "Disable DNSMasq DHCP by creating new default libvirt networking config"
+uuid=$(uuid)
+# ToDo generate unique MAC
+mac="52:54:00:9b:61:79"
+mkdir -p /usr/share/libvirt/networks
 
-log "Install pip gns3fy"
-apt install -y   \
-  curl           \
-  git            \
-  git-lfs        \
-  jq             \
-  python3        \
-  pip            \
-  uuid-runtime   \
-  uuid
-pip install gns3fy
+cat <<EOF > /usr/share/libvirt/networks/default.xml
+<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
+  <name>default</name>
+  <uuid>$uuid</uuid>
+  <forward mode='nat'/>
+  <bridge name='virbr0' stp='on' delay='0'/>
+  <mac address='$mac'/>
+  <ip address='192.168.122.1' netmask='255.255.255.0'>
+  </ip>
+</network>
+EOF
 
-log "Modify ssh config for Cisco devices"
+log "Libvirt removing default network and activate new default"
+virsh net-destroy default
+virsh net-undefine default
+virsh net-define /usr/share/libvirt/networks/default.xml
+virsh net-autostart default
+virsh net-start default
+
+# ToDo Install and anable ISC DHCP with better support for option 82 handeling
+log "Installing ISC DHCP server only for virbr0 interface"
+apt install -y isc-dhcp-server
+
+cat <<DHCPCONF > /etc/dhcp/dhcpd.conf
+authoritative;
+default-lease-time 600;
+max-lease-time 7200;
+ddns-update-style none;
+option cisco-ip-tftp-servers code 150 = { ip-address };
+
+subnet 192.168.122.0 netmask 255.255.255.0 {
+    range 192.168.122.2 192.168.122.254;
+    option routers 192.168.122.1;
+    option domain-name-servers 192.168.122.1;
+    option domain-name "lab.local";
+    option cisco-ip-tftp-servers 192.168.122.1;
+    # boot-file test.cnf            # option 67 IEEE bootfile image
+    # next-server 192.168.122.1     # option 66 IEEE TFTP server
+    filename = concat(substring(option agent.remote-id, 2,200), "__", substring(option agent.circuit-id, 2, 200), ".cfg");
+}
+DHCPCONF
+
+cat <<DHCPD > /etc/default/isc-dhcp-server
+INTERFACESv4="virbr0"
+INTERFACESv6=""
+DHCPD
+
+log "Restarting ISC DHCP server"
+systemctl restart isc-dhcp-server.service
+
+# ToDo Install smart TFTPserver
+# Download example configs
+
+log "Modify ssh config to access Cisco devices over ssh"
 cat <<EOF > /etc/ssh/ssh_config.d/gns3.conf
 Host *
     ForwardAgent yes
