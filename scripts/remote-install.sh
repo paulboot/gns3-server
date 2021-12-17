@@ -559,23 +559,31 @@ DHCPD
 log "Restarting ISC DHCP server"
 systemctl restart isc-dhcp-server.service
 
-log "Installing smart TFTP server fbtftp"
-Repo="fbtftp"
+
+log "Get keys from Azure vault"
+Bearer=$(curl -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | jq -r '.access_token')
 Key1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $Bearer" | jq -r '.value')
-mkdir -p /opt/ztp/tftproot
-cd /opt/ztp
+
+log "Installing smart TFTP server ztptftpd"
+$Repo="ztptftpd network-configs"
+cd /opt
+for Repo in $Repos
+do
+    git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
+done
+ln -s network-configs /opt/tftpboot
+
+cd ztptftpd
 apt-get install -y python3-venv
 python3 -m venv venv
-# git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
-cd $Repo
 source venv/bin/activate
 pip install -r requirements.txt
-python
-import fbtftp
 exit()
 
 # TODO Enhance and Parse a YAML drawthe.net as source of truth
-# Install FTP server, dynamically create r1-conf start file using requested filename and template
+# Install TFTP server,
+# Install network-configs and templates
+# Dynamically create r1-conf start file using requested filename and template
 # Create management only templates
 # Using curl/python create empty project in GNS3
 #   Create NAT cloud
@@ -598,8 +606,6 @@ EOF
 
 log "Checkout private repo from GITHUB using secret stored in Azure"
 Repo="qemu-images"
-Bearer=$(curl -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | jq -r '.access_token')
-Key1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $Bearer" | jq -r '.value')
 cd /tmp
 git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
 cd $Repo
