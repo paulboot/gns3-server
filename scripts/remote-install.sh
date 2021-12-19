@@ -427,6 +427,8 @@ apt install -y   \
   uuid-runtime   \
   uuid
 pip install gns3fy
+# ToDo Hack bug in gns3fy for GNS3 2.2.22 overwrite with dev branch
+curl -s https://raw.githubusercontent.com/davidban77/gns3fy/develop/gns3fy/gns3fy.py -o /usr/local/lib/python3.8/dist-packages/gns3fy/gns3fy.py
 
 log "Create a persistent tap device"
 cat <<EOFTAP > /etc/systemd/network/90-tap0.netdev
