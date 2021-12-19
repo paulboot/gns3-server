@@ -571,20 +571,19 @@ for Repo in $Repos
 do
     git clone https://$Key1:x-oauth-basic@github.com/paulboot/$Repo.git
 done
-ln -s network-configs /opt/tftpboot
-
+ln -s /opt/ztptftpd/systemd/ztptftpd.service /lib/systemd/system/ztptftpd.service
 cd ztptftpd
-# apt-get install -y python3-venv
-# python3 -m venv venv
-# source venv/bin/activate
 pip install -r requirements.txt
-# exit
+ln -s /opt/ztptftpd/systemd/ztptftpd.service /lib/systemd/system/ztptftpd.service
+log "Start ztptftpd service"
+systemctl enable ztptftpd
+systemctl start ztptftpd
 
 # TODO Enhance and Parse a YAML drawthe.net as source of truth
-# Install TFTP server,
-# Install network-configs and templates
-# Dynamically create r1-conf start file using requested filename and template
-# Create management only templates
+# DONE Install TFTP server,
+# DONE Install network-configs and templates
+# DONE Dynamically create r1-conf start file using requested filename and template
+# DONE Create management only templates
 # Using curl/python create empty project in GNS3
 #   Create NAT cloud
 #   Create L2 switch
