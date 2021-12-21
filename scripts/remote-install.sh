@@ -567,7 +567,7 @@ Bearer=$(curl -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-vers
 Key1=$(curl -s "https://vlt-labs-bocuse.vault.azure.net/secrets/key1?api-version=2016-10-01" -H "Authorization: Bearer $Bearer" | jq -r '.value')
 
 log "Installing smart TFTP server ztptftpd"
-Repos="ztptftpd network-configs"
+Repos="ztptftpd network-configs drawthe.net drawthenet_converter"
 cd /opt
 for Repo in $Repos
 do
