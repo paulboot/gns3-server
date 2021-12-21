@@ -577,9 +577,15 @@ ln -s /opt/ztptftpd/systemd/ztptftpd.service /lib/systemd/system/ztptftpd.servic
 cd ztptftpd
 pip install -r requirements.txt
 ln -s /opt/ztptftpd/systemd/ztptftpd.service /lib/systemd/system/ztptftpd.service
+cd /opt
 log "Start ztptftpd service"
 systemctl enable ztptftpd
 systemctl start ztptftpd
+
+log "Installing drawthe.net and drawthenet_convertor"
+cd drawthenet_converter
+pip install -r requirements.txt
+cd /opt
 
 # TODO Enhance and Parse a YAML drawthe.net as source of truth
 # DONE Install TFTP server,
