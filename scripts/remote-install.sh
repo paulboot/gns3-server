@@ -24,8 +24,7 @@
 function help {
   echo "Usage:" >&2
   echo "--with-openvpn: Install OpenVPN" >&2
-  echo "--with-iou: Install IOU" >&2
-  echo "--with-i386-repository: Add the i386 repositories required by IOU if they are not already available on the system. Warning: this will replace your source.list in order to use the official Ubuntu mirror" >&2
+  echo "--with-iou: Install IOU " >&2
   echo "--without-kvm: Disable KVM, required if system do not support it (limitation in some hypervisors and cloud providers). Warning: only disable KVM if strictly necessary as this will degrade performance" >&2
   echo "--unstable: Use the GNS3 unstable repository"
   echo "--help: This help" >&2
@@ -43,13 +42,13 @@ then
 fi
 
 # Read the options
-USE_VPN=1
+USE_VPN=0
 USE_IOU=0
 I386_REPO=0
 DISABLE_KVM=0
 UNSTABLE=0
 
-TEMP=`getopt -o h --long with-openvpn,with-iou,with-i386-repository,without-kvm,unstable,help -n 'gns3-remote-install.sh' -- "$@"`
+TEMP=`getopt -o h --long with-openvpn,with-iou,without-kvm,unstable,help -n 'gns3-remote-install.sh' -- "$@"`
 if [ $? != 0 ]
 then
   help
@@ -66,10 +65,6 @@ while true ; do
           ;;
         --with-iou)
           USE_IOU=1
-          shift
-          ;;
-        --with-i386-repository)
-          I386_REPO=1
           shift
           ;;
         --without-kvm)
@@ -96,64 +91,15 @@ export DEBIAN_FRONTEND="noninteractive"
 UBUNTU_CODENAME=`lsb_release -c -s`
 
 log "Add GNS3 repository"
+add-apt-repository -y ppa:gns3/ppa
 
-if [ "$UBUNTU_CODENAME" == "trusty" ]
-then
-    if [ $UNSTABLE == 1 ]
-    then
-        cat <<EOFLIST > /etc/apt/sources.list.d/gns3.list
-deb http://ppa.launchpad.net/gns3/unstable/ubuntu $UBUNTU_CODENAME main
-deb-src http://ppa.launchpad.net/gns3/unstable/ubuntu $UBUNTU_CODENAME main
-deb http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main
-deb-src http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main
-EOFLIST
-    else
-        cat <<EOFLIST > /etc/apt/sources.list.d/gns3.list
-deb http://ppa.launchpad.net/gns3/ppa/ubuntu $UBUNTU_CODENAME main
-deb-src http://ppa.launchpad.net/gns3/ppa/ubuntu $UBUNTU_CODENAME main
-deb http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main
-deb-src http://ppa.launchpad.net/gns3/qemu/ubuntu $UBUNTU_CODENAME main
-EOFLIST
-    fi
-else
-    if [ $UNSTABLE == 1 ]
-    then
-        cat <<EOFLIST > /etc/apt/sources.list.d/gns3.list
-deb http://ppa.launchpad.net/gns3/unstable/ubuntu $UBUNTU_CODENAME main
-deb-src http://ppa.launchpad.net/gns3/unstable/ubuntu $UBUNTU_CODENAME main
-EOFLIST
-    else
-       cat <<EOFLIST > /etc/apt/sources.list.d/gns3.list
-deb http://ppa.launchpad.net/gns3/ppa/ubuntu $UBUNTU_CODENAME main
-deb-src http://ppa.launchpad.net/gns3/ppa/ubuntu $UBUNTU_CODENAME main
-EOFLIST
-    fi
-fi
-
-if [ $I386_REPO == 1 ]
-then
-    cat <<EOFLIST2  >> /etc/apt/sources.list
-###### Ubuntu Main Repos
-deb http://archive.ubuntu.com/ubuntu/ $UBUNTU_CODENAME main universe multiverse
-deb-src http://archive.ubuntu.com/ubuntu/ $UBUNTU_CODENAME main universe multiverse
-
-###### Ubuntu Update Repos
-deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-security main universe multiverse
-deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-updates main universe multiverse
-deb-src http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-security main universe multiverse
-deb-src http://archive.ubuntu.com/ubuntu/ ${UBUNTU_CODENAME}-updates main universe multiverse
-EOFLIST2
-fi
-
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys A2E3EF7B
-
-log "Update system packages"
+log "Update package info"
 apt-get update
 
 log "Upgrade packages"
-apt-get upgrade --yes --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-log "Install GNS3 packages"
+log "Install GNS3 server packages"
 apt-get install -y gns3-server
 
 log "Create user GNS3 with /opt/gns3 as home directory"
@@ -165,14 +111,31 @@ fi
 log "Add GNS3 to the ubridge group"
 usermod -aG ubridge gns3
 
-log "Install docker"
-if [ ! -f "/usr/bin/docker" ]
-then
-    curl -sSL https://get.docker.com | bash
-fi
+log "Add GNS3 to the kvm group"
+usermod -aG kvm gns3
+
+log "Uninstall docker if installed"
+apt remove docker docker-engine docker.io
+
+log "Install docker from docker.com repo"
+apt install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository -y \
+"deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) stable"
+apt update
+apt install -y docker-ce
 
 log "Add GNS3 to the docker group"
 usermod -aG docker gns3
+
+log "Install github cli"
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+&& apt update \
+&& apt install -y gh
+
 
 if [ $USE_IOU == 1 ]
 then
@@ -194,11 +157,7 @@ then
     echo "127.0.0.254 xml.cisco.com" | tee --append /etc/hosts
 fi
 
-log "Add GNS3 to the kvm group"
-usermod -aG kvm gns3
-
 log "Setup GNS3 server"
-
 mkdir -p /etc/gns3
 cat <<EOFC > /etc/gns3/gns3_server.conf
 [Server]
@@ -211,6 +170,7 @@ configs_path = /opt/gns3/configs
 report_errors = True
 
 [Qemu]
+enable_kvm = True
 enable_hardware_acceleration = True
 require_hardware_acceleration = True
 EOFC
@@ -284,6 +244,7 @@ LimitNOFILE=16384
 [Install]
 WantedBy=multi-user.target
 EOFI
+
     chmod 755 /lib/systemd/system/gns3.service
     chown root:root /lib/systemd/system/gns3.service
 
